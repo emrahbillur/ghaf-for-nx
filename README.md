@@ -21,7 +21,7 @@ The build stage is
 
 #### Run the command:
 
-nix build github:tiiuae/ghaf#nvidia-jetson-orin-nx-debug-flash-script 
+nix build github:emrahbillur/ghaf-for-nx#nvidia-jetson-orin-nx-debug-flash-script 
 
 It will build the Ghaf image and bootloader firmware, and prepare the flashing script. Give "yes" answers to all script questions. The building process takes around 1,5 hours.
 Here we do not use the flash command directly as the Orin NX does not have local EMMC but find the nixos-disk-image created and use
