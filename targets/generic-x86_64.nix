@@ -4,16 +4,18 @@
 # Generic x86_64 computer -target
 {
   self,
-  nixpkgs,
+  lib,
   nixos-generators,
+  nixos-hardware,
   microvm,
 }: let
   name = "generic-x86_64";
   system = "x86_64-linux";
   formatModule = nixos-generators.nixosModules.raw-efi;
   generic-x86 = variant: extraModules: let
-    hostConfiguration = nixpkgs.lib.nixosSystem {
+    hostConfiguration = lib.nixosSystem {
       inherit system;
+      specialArgs = {inherit lib;};
       modules =
         [
           (import ../modules/host {
@@ -28,11 +30,17 @@
 
           formatModule
 
+          #TODO: how to handle the majority of laptops that need a little
+          # something extra?
+          # SEE: https://github.com/NixOS/nixos-hardware/blob/master/flake.nix
+          # nixos-hardware.nixosModules.lenovo-thinkpad-x1-10th-gen
+
           {
             boot.kernelParams = [
               "intel_iommu=on,igx_off,sm_on"
               "iommu=pt"
 
+              # TODO: Change per your device
               # Passthrough Intel WiFi card
               "vfio-pci.ids=8086:a0f0"
             ];
@@ -46,7 +54,7 @@
     name = "${name}-${variant}";
     netvmConfiguration =
       (import ../microvmConfigurations/netvm {
-        inherit nixpkgs microvm system;
+        inherit lib microvm system;
       })
       .extendModules {
         modules = [
@@ -78,10 +86,10 @@
   ];
 in {
   nixosConfigurations =
-    builtins.listToAttrs (map (t: nixpkgs.lib.nameValuePair t.name t.hostConfiguration) targets)
-    // builtins.listToAttrs (map (t: nixpkgs.lib.nameValuePair t.netvm t.netvmConfiguration) targets);
+    builtins.listToAttrs (map (t: lib.nameValuePair t.name t.hostConfiguration) targets)
+    // builtins.listToAttrs (map (t: lib.nameValuePair t.netvm t.netvmConfiguration) targets);
   packages = {
     x86_64-linux =
-      builtins.listToAttrs (map (t: nixpkgs.lib.nameValuePair t.name t.package) targets);
+      builtins.listToAttrs (map (t: lib.nameValuePair t.name t.package) targets);
   };
 }
